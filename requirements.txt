@@ -1,0 +1,8 @@
+# Universal File Deduplicator - Requirements
+# No external dependencies required! Uses only Python standard library.
+# 
+# Python 3.8+ required for walrus operator (:=) and dataclasses
+#
+# Optional dependencies for enhanced functionality:
+# tqdm>=4.0.0  # Progress bars (optional)
+# colorama>=0.4.0  # Colored output on Windows (optional)
