@@ -1,0 +1,32 @@
+==========================================
+FILE DEDUPLICATOR - QUICK REFERENCE
+==========================================
+
+BASIC USAGE
+------------------------------------------
+python deduplicator.py <directory>         Find duplicates
+python deduplicator.py <dir> --dry-run     Safe preview mode
+python deduplicator.py <dir> --action delete  Delete duplicates
+python deduplicator.py <dir> --action move --move-to ./dups  Move duplicates
+
+FILTERING
+------------------------------------------
+--min-size 1MB                             Minimum file size
+--max-size 100MB                           Maximum file size
+--extensions .jpg,.png                     File types only
+--exclude node_modules,.git                Skip directories
+
+OUTPUT
+------------------------------------------
+--export json --output report.json        JSON report
+--export csv --output report.csv          CSV report
+--verbose                                  Detailed output
+--quiet                                    Minimal output
+
+SAFETY
+------------------------------------------
+--dry-run                                  Preview only
+--interactive                              Confirm each deletion
+--threads 4                                Parallel processing
+
+==========================================

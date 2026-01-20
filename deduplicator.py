@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 """
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║                     🔍 UNIVERSAL FILE DEDUPLICATOR                            ║
-║                         Metaphy LLC - 2025                                     ║
-║                                                                                ║
-║  Find and manage duplicate files across any directory.                         ║
-║  Fast, accurate, and safe - with multiple action modes.                        ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+=================================================================================
+#                     [SCAN] UNIVERSAL FILE DEDUPLICATOR                            #
+#                         Metaphy LLC - 2025                                     #
+#                                                                                #
+#  Find and manage duplicate files across any directory.                         #
+#  Fast, accurate, and safe - with multiple action modes.                        #
+=================================================================================
 
 Author: Logan Smith / Metaphy LLC
 Repository: https://github.com/DonkRonk17/file-deduplicator
@@ -26,12 +26,22 @@ from typing import Dict, List, Tuple, Optional
 import concurrent.futures
 from dataclasses import dataclass, asdict
 
+# Fix Windows console encoding
+if __name__ != "__main__":
+    # Fix encoding when imported as module (for tests)
+    import sys
+    if sys.platform == "win32":
+        try:
+            sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+        except AttributeError:
+            pass  # Python <  3.7
+
 # Version
 __version__ = "1.0.0"
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ===============================================================================
 # DATA CLASSES
-# ═══════════════════════════════════════════════════════════════════════════════
+# ===============================================================================
 
 @dataclass
 class FileInfo:
@@ -61,9 +71,9 @@ class DuplicateGroup:
             'files': [f.to_dict() for f in self.files]
         }
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ===============================================================================
 # CORE DEDUPLICATOR CLASS
-# ═══════════════════════════════════════════════════════════════════════════════
+# ===============================================================================
 
 class FileDeduplicator:
     """
@@ -194,11 +204,11 @@ class FileDeduplicator:
         if not directory.is_dir():
             raise NotADirectoryError(f"Not a directory: {directory}")
         
-        print(f"🔍 Scanning: {directory}")
+        print(f"[SCAN] Scanning: {directory}")
         print(f"   Options: min_size={self.min_size}, recursive={recursive}")
         
         # Phase 1: Collect all files and group by size
-        print("\n📁 Phase 1: Collecting files...")
+        print("\n[GROUP] Phase 1: Collecting files...")
         size_groups: Dict[int, List[Path]] = defaultdict(list)
         
         def walk_directory(dir_path: Path):
@@ -228,7 +238,7 @@ class FileDeduplicator:
         print(f"   {len(potential_duplicates):,} size groups with potential duplicates")
         
         # Phase 2: Quick hash for initial grouping
-        print("\n⚡ Phase 2: Quick hash filtering...")
+        print("\n[!] Phase 2: Quick hash filtering...")
         quick_hash_groups: Dict[str, List[Path]] = defaultdict(list)
         
         for size, files in potential_duplicates.items():
@@ -279,7 +289,7 @@ class FileDeduplicator:
                 self.stats['files_hashed'] += 1
         
         # Phase 4: Build duplicate groups
-        print("\n📊 Phase 4: Building duplicate groups...")
+        print("\n[STATS] Phase 4: Building duplicate groups...")
         duplicate_groups: List[DuplicateGroup] = []
         
         for file_hash, files in full_hash_groups.items():
@@ -307,29 +317,29 @@ class FileDeduplicator:
     
     def print_report(self, groups: List[DuplicateGroup], verbose: bool = False):
         """Print a human-readable report of duplicates."""
-        print("\n" + "═" * 70)
+        print("\n" + "=" * 70)
         print("                    📋 DUPLICATE FILE REPORT")
-        print("═" * 70)
+        print("=" * 70)
         
         if not groups:
-            print("\n✅ No duplicate files found!")
+            print("\n[OK] No duplicate files found!")
             self._print_stats()
             return
         
-        print(f"\n🔴 Found {len(groups)} groups of duplicate files")
+        print(f"\n[!] Found {len(groups)} groups of duplicate files")
         print(f"   Total duplicates: {self.stats['duplicates_found']:,}")
         print(f"   Wasted space: {self._format_size(self.stats['wasted_space'])}")
         
         print("\n" + "-" * 70)
         
         for i, group in enumerate(groups, 1):
-            print(f"\n📁 Group {i}: {self._format_size(group.size)} × {len(group.files)} files")
+            print(f"\n[GROUP] Group {i}: {self._format_size(group.size)} [>] {len(group.files)} files")
             print(f"   Hash: {group.hash[:16]}...")
             print(f"   Wasted: {self._format_size(group.wasted_space)}")
             
             if verbose or len(groups) <= 10:
                 for j, file_info in enumerate(group.files):
-                    marker = "🟢" if j == 0 else "🔴"
+                    marker = "🟢" if j == 0 else "[!]"
                     print(f"   {marker} {file_info.path}")
         
         self._print_stats()
@@ -337,7 +347,7 @@ class FileDeduplicator:
     def _print_stats(self):
         """Print scan statistics."""
         print("\n" + "-" * 70)
-        print("📊 SCAN STATISTICS")
+        print("[STATS] SCAN STATISTICS")
         print("-" * 70)
         print(f"   Files scanned:    {self.stats['files_scanned']:,}")
         print(f"   Files hashed:     {self.stats['files_hashed']:,}")
@@ -345,7 +355,7 @@ class FileDeduplicator:
         print(f"   Duplicates found: {self.stats['duplicates_found']:,}")
         print(f"   Wasted space:     {self._format_size(self.stats['wasted_space'])}")
         print(f"   Scan time:        {self.stats['scan_time']:.2f} seconds")
-        print("═" * 70)
+        print("=" * 70)
     
     def export_json(self, groups: List[DuplicateGroup], output_path: str):
         """Export results to JSON file."""
@@ -358,7 +368,7 @@ class FileDeduplicator:
         with open(output_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2)
         
-        print(f"✅ Exported to: {output_path}")
+        print(f"[OK] Exported to: {output_path}")
     
     def export_csv(self, groups: List[DuplicateGroup], output_path: str):
         """Export results to CSV file."""
@@ -371,7 +381,7 @@ class FileDeduplicator:
                     path = file_info.path.replace('"', '""')
                     f.write(f'{i},"{group.hash}",{file_info.size},"{path}",{mod_date}\n')
         
-        print(f"✅ Exported to: {output_path}")
+        print(f"[OK] Exported to: {output_path}")
     
     def delete_duplicates(self, groups: List[DuplicateGroup], 
                          keep: str = 'oldest',
@@ -390,7 +400,7 @@ class FileDeduplicator:
             Number of files deleted (or would be deleted in dry run)
         """
         if dry_run:
-            print("\n⚠️  DRY RUN - No files will be deleted")
+            print("\n[!]  DRY RUN - No files will be deleted")
         
         deleted_count = 0
         freed_space = 0
@@ -408,35 +418,35 @@ class FileDeduplicator:
             keeper = files[0]
             to_delete = files[1:]
             
-            print(f"\n📁 Group: {group.hash[:16]}...")
+            print(f"\n[GROUP] Group: {group.hash[:16]}...")
             print(f"   Keeping: {keeper.path}")
             
             for file_info in to_delete:
                 if interactive and not dry_run:
                     response = input(f"   Delete {file_info.path}? [y/N]: ")
                     if response.lower() != 'y':
-                        print(f"   ⏭️  Skipped: {file_info.path}")
+                        print(f"   [SKIP]  Skipped: {file_info.path}")
                         continue
                 
                 if dry_run:
-                    print(f"   🔴 Would delete: {file_info.path}")
+                    print(f"   [!] Would delete: {file_info.path}")
                 else:
                     try:
                         os.remove(file_info.path)
-                        print(f"   ✅ Deleted: {file_info.path}")
+                        print(f"   [OK] Deleted: {file_info.path}")
                         deleted_count += 1
                         freed_space += file_info.size
                     except (PermissionError, OSError) as e:
-                        print(f"   ❌ Failed: {file_info.path} - {e}")
+                        print(f"   [X] Failed: {file_info.path} - {e}")
         
-        print("\n" + "═" * 70)
+        print("\n" + "=" * 70)
         if dry_run:
-            print(f"📊 DRY RUN SUMMARY: Would delete {deleted_count} files")
+            print(f"[STATS] DRY RUN SUMMARY: Would delete {deleted_count} files")
             print(f"   Would free: {self._format_size(freed_space)}")
         else:
-            print(f"📊 DELETION SUMMARY: Deleted {deleted_count} files")
+            print(f"[STATS] DELETION SUMMARY: Deleted {deleted_count} files")
             print(f"   Space freed: {self._format_size(freed_space)}")
-        print("═" * 70)
+        print("=" * 70)
         
         return deleted_count
     
@@ -462,9 +472,9 @@ class FileDeduplicator:
             dest_path.mkdir(parents=True, exist_ok=True)
         
         if dry_run:
-            print(f"\n⚠️  DRY RUN - Files would be moved to: {destination}")
+            print(f"\n[!]  DRY RUN - Files would be moved to: {destination}")
         else:
-            print(f"\n📦 Moving duplicates to: {destination}")
+            print(f"\n[MOVE] Moving duplicates to: {destination}")
         
         moved_count = 0
         
@@ -489,16 +499,16 @@ class FileDeduplicator:
                     counter += 1
                 
                 if dry_run:
-                    print(f"   Would move: {src} → {dst}")
+                    print(f"   Would move: {src} [>] {dst}")
                 else:
                     try:
                         shutil.move(str(src), str(dst))
-                        print(f"   ✅ Moved: {src.name}")
+                        print(f"   [OK] Moved: {src.name}")
                         moved_count += 1
                     except (PermissionError, OSError) as e:
-                        print(f"   ❌ Failed: {src} - {e}")
+                        print(f"   [X] Failed: {src} - {e}")
         
-        print(f"\n📊 {'Would move' if dry_run else 'Moved'}: {moved_count} files")
+        print(f"\n[STATS] {'Would move' if dry_run else 'Moved'}: {moved_count} files")
         return moved_count
     
     @staticmethod
@@ -510,9 +520,9 @@ class FileDeduplicator:
             size /= 1024
         return f"{size:.2f} PB"
 
-# ═══════════════════════════════════════════════════════════════════════════════
+# ===============================================================================
 # CLI INTERFACE
-# ═══════════════════════════════════════════════════════════════════════════════
+# ===============================================================================
 
 def main():
     """Main CLI entry point."""
@@ -525,7 +535,7 @@ def main():
             pass  # Python < 3.7
     
     parser = argparse.ArgumentParser(
-        description="🔍 Universal File Deduplicator - Find and manage duplicate files",
+        description="[SCAN] Universal File Deduplicator - Find and manage duplicate files",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
@@ -595,10 +605,10 @@ Repository: https://github.com/DonkRonk17/file-deduplicator
     
     # Print banner
     print("""
-╔═══════════════════════════════════════════════════════════════════════════════╗
-║                     🔍 UNIVERSAL FILE DEDUPLICATOR v1.0.0                     ║
-║                         Metaphy LLC - 2025                                     ║
-╚═══════════════════════════════════════════════════════════════════════════════╝
+=================================================================================
+#                     [SCAN] UNIVERSAL FILE DEDUPLICATOR v1.0.0                     #
+#                         Metaphy LLC - 2025                                     #
+=================================================================================
     """)
     
     # Create deduplicator
@@ -629,10 +639,10 @@ Repository: https://github.com/DonkRonk17/file-deduplicator
         # Perform actions if requested
         if args.delete:
             if not args.dry_run:
-                print("\n⚠️  WARNING: This will permanently delete files!")
+                print("\n[!]  WARNING: This will permanently delete files!")
                 response = input("Are you sure? Type 'yes' to confirm: ")
                 if response.lower() != 'yes':
-                    print("❌ Aborted.")
+                    print("[X] Aborted.")
                     return
             
             dedup.delete_duplicates(
@@ -651,10 +661,10 @@ Repository: https://github.com/DonkRonk17/file-deduplicator
             )
         
     except FileNotFoundError as e:
-        print(f"❌ Error: {e}")
+        print(f"[X] Error: {e}")
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\n⚠️  Scan interrupted by user")
+        print("\n\n[!]  Scan interrupted by user")
         sys.exit(130)
 
 if __name__ == '__main__':
